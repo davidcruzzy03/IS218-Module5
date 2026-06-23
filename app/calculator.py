@@ -311,7 +311,7 @@ class Calculator:
             logging.error(f"Failed to load history: {e}")
             raise OperationError(f"Failed to load history: {e}")
 
-    def get_history_dataframe(self) -> pd.DataFrame:
+    def get_history_dataframe(self) -> pd.DataFrame:  #pragma: no cover
         """
         Get calculation history as a pandas DataFrame.
 

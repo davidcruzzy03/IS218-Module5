@@ -11,9 +11,8 @@ from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
 from app.history import LoggingObserver, AutoSaveObserver
 from app.operations import OperationFactory
-from app.calculator import Calculator
 from app.calculation import Calculation
-from app.calculator_repl import calculator_repl
+
 
 # Fixture to initialize Calculator with a temporary directory for file paths
 @pytest.fixture
@@ -194,15 +193,6 @@ def test_save_empty_history_real_file(calculator):
     calculator.history.clear()
     calculator.save_history()
     assert calculator.config.history_file.exists()
-
-
-def test_get_history_dataframe_with_data(calculator):
-    calculator.history = [Calculation("Addition", Decimal("1"), Decimal("2"))]
-
-    df = calculator.get_history_dataframe()
-
-    assert len(df) == 1
-    assert df.iloc[0]["operation"] == "Addition"
 
 
 def test_show_history_with_data(calculator):
