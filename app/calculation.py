@@ -76,7 +76,7 @@ class Calculation:
         try:
             # Execute the operation with the provided operands
             return op(self.operand1, self.operand2)
-        except (InvalidOperation, ValueError, ArithmeticError) as e:
+        except (InvalidOperation, ValueError, ArithmeticError, TypeError) as e:
             # Handle any errors that occur during calculation
             raise OperationError(f"Calculation failed: {str(e)}")
 

@@ -11,6 +11,9 @@ from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
 from app.history import LoggingObserver, AutoSaveObserver
 from app.operations import OperationFactory
+from app.calculator import Calculator
+from app.calculation import Calculation
+from app.calculator_repl import calculator_repl
 
 # Fixture to initialize Calculator with a temporary directory for file paths
 @pytest.fixture
@@ -178,3 +181,63 @@ def test_calculator_repl_help(mock_print, mock_input):
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 5")
+
+def test_undo_empty_returns_false(calculator):
+    assert calculator.undo() is False
+
+
+def test_redo_empty_returns_false(calculator):
+    assert calculator.redo() is False
+
+
+def test_save_empty_history_real_file(calculator):
+    calculator.history.clear()
+    calculator.save_history()
+    assert calculator.config.history_file.exists()
+
+
+def test_get_history_dataframe_with_data(calculator):
+    calculator.history = [Calculation("Addition", Decimal("1"), Decimal("2"))]
+
+    df = calculator.get_history_dataframe()
+
+    assert len(df) == 1
+    assert df.iloc[0]["operation"] == "Addition"
+
+
+def test_show_history_with_data(calculator):
+    calculator.history = [Calculation("Addition", Decimal("1"), Decimal("2"))]
+
+    history = calculator.show_history()
+
+    assert history == ["Addition(1, 2) = 3"]
+
+
+def test_history_max_size_pop(calculator):
+    calculator.config.max_history_size = 1
+    calculator.set_operation(OperationFactory.create_operation("add"))
+
+    calculator.perform_operation(1, 2)
+    calculator.perform_operation(3, 4)
+
+    assert len(calculator.history) == 1
+
+
+def test_perform_operation_general_exception(monkeypatch, calculator):
+    calculator.set_operation(OperationFactory.create_operation("add"))
+
+    def bad_validate(value, config):
+        raise RuntimeError("bad input")
+
+    monkeypatch.setattr("app.calculator.InputValidator.validate_number", bad_validate)
+
+    with pytest.raises(OperationError):
+        calculator.perform_operation(1, 2)
+
+
+def test_load_empty_history_file(calculator):
+    calculator.history.clear()
+    calculator.save_history()
+    calculator.load_history()
+
+    assert calculator.history == []
